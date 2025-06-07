@@ -1,5 +1,5 @@
 {
-    "name": "kejkej/laravel-notification-preferences",
+    "name": "kejkej/notification-preferences",
     "description": "A Laravel package for notification preferences.",
     "keywords": [
         "laravel",
@@ -15,7 +15,7 @@
     ],
     "require": {
         "php": "^8.0",
-        "illuminate/support": "^9.0|^10.0|^11.0"
+        "illuminate/support": "^9.0|^10.0|^11.0|^12.0"
     },
     "autoload": {
         "psr-4": {
