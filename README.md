@@ -100,7 +100,7 @@ This package provides a flexible way to manage user notification preferences in 
         // ... other methods like toMail, toArray, etc.
     }
     ```
-    *Note: The `RoutesNotificationsViaPreferences` trait will likely dynamically determine the channels based on user settings. You might need to adjust the `via` method or rely on the trait's default behavior.*
+    *Note: The `RoutesNotificationsViaPreferences` trait will likely dynamically determine the channels based on user preferences. You might need to adjust the `via` method or rely on the trait's default behavior.*
 
 3.  **Managing Preferences (Example):**
     You will need to build an interface for users to manage their preferences. Here's a conceptual example of how you might update preferences in your controller:
@@ -125,14 +125,14 @@ This package provides a flexible way to manage user notification preferences in 
     public function getNotificationPreferences(User $user)
     {
         $preferences = $user->getNotificationPreferences();
-        // $preferences will be an array of the user's current settings
+        // $preferences will be an array of the user's current preferences
         // e.g., ['PostCommented' => ['mail', 'database']]
 
         $availableNotifications = config('notification-preferences.notifications');
         $availableChannels = config('notification-preferences.channels');
 
         // Pass this data to a view to render the preferences form
-        return view('profile.notification-settings', compact('user', 'preferences', 'availableNotifications', 'availableChannels'));
+        return view('profile.notification-preferences', compact('user', 'preferences', 'availableNotifications', 'availableChannels'));
     }
     ```
 
