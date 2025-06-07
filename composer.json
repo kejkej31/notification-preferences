@@ -1,0 +1,34 @@
+{
+    "name": "kejkej/laravel-notification-preferences",
+    "description": "A Laravel package for notification preferences.",
+    "keywords": [
+        "laravel",
+        "notifications",
+        "preferences"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kuba Kaliszczak",
+            "email": "dev@kejkej.pl"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "illuminate/support": "^9.0|^10.0|^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "KejKej\\NotificationPreferences\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "KejKej\\NotificationPreferences\\NotificationPreferencesServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
