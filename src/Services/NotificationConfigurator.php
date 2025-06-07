@@ -13,7 +13,7 @@ class NotificationConfigurator implements NotificationConfiguratorContract
      */
     public function channels(): array
     {
-        return config('notification-settings.channels', []);
+        return config('notification-preferences.channels', []);
     }
 
     /**
@@ -23,7 +23,7 @@ class NotificationConfigurator implements NotificationConfiguratorContract
      */
     public function notifiations(): array
     {
-        return config('notification-settings.notifications', []);
+        return config('notification-preferences.notifications', []);
     }
 
     /**
