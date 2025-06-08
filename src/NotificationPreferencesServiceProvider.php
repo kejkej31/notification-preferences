@@ -15,8 +15,18 @@ class NotificationPreferencesServiceProvider extends ServiceProvider
     {
         $this->publishes([
             __DIR__ . '/../config/notification-preferences.php' => config_path('notification-preferences.php'),
-        ], 'config');
+        ], 'notification-preferences-config');
 
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+         $this->publishesMigrations([
+            __DIR__ . '/../database/migrations' => database_path('migrations')
+        ], 'notification-preferences-migrations');
+    }
+
+    public function register()
+    {
+        $this->app->bind(
+            \KejKej\NotificationPreferences\Contracts\NotificationConfiguratorContract::class,
+            \KejKej\NotificationPreferences\Services\NotificationConfigurator::class
+        );
     }
 }
