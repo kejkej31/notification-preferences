@@ -4,7 +4,7 @@ namespace KejKej\NotificationPreferences\Traits;
 
 use KejKej\NotificationPreferences\Contracts\NotificationConfigurator;
 
-trait HasChannels
+trait HasChannelSettings
 {
     public function getAvailableChannels(): array
     {

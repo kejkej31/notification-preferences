@@ -72,7 +72,7 @@ This package provides a flexible way to manage user notification preferences in 
 
     To integrate with the preference system, your notification classes need to:
     *   Use the `KejKej\\NotificationPreferences\\Traits\\RoutesNotificationsViaPreferences` trait. This trait provides the `via()` method that dynamically determines channels based on user preferences.
-    *   Optionally, implement the `KejKej\\NotificationPreferences\\Contracts\\HasChannels` interface and use the `KejKej\\NotificationPreferences\\Traits\\HasChannels` trait if you want to define specific available channels for a notification or set its default channels.
+    *   Optionally, implement the `KejKej\\NotificationPreferences\\Contracts\\HasChannelSettings` interface and use the `KejKej\\NotificationPreferences\\Traits\\HasChannelSettings` trait if you want to define specific available channels for a notification or set its default channels.
 
     Here's how you can set it up:
 
@@ -82,13 +82,13 @@ This package provides a flexible way to manage user notification preferences in 
 
     use Illuminate\\Bus\\Queueable;
     use Illuminate\\Notifications\\Notification;
-    use KejKej\\NotificationPreferences\\Contracts\\HasChannels as HasChannelsContract; // Add this
-    use KejKej\\NotificationPreferences\\Traits\\HasChannels; // Add this
+    use KejKej\\NotificationPreferences\\Contracts\\HasChannelSettings as HasChannelSettingsContract; // Add this
+    use KejKej\\NotificationPreferences\\Traits\\HasChannelSettings; // Add this
     use KejKej\\NotificationPreferences\\Traits\\RoutesNotificationsViaPreferences; // Add this
 
-    class PostCommented extends Notification implements HasChannelsContract // Implement the contract
+    class PostCommented extends Notification implements HasChannelSettingsContract // Implement the contract
     {
-        use Queueable, RoutesNotificationsViaPreferences, HasChannels; // Add the traits
+        use Queueable, RoutesNotificationsViaPreferences, HasChannelSettings; // Add the traits
 
         /**
          * OPTIONAL
@@ -117,13 +117,13 @@ This package provides a flexible way to manage user notification preferences in 
     **Explanation:**
 
     *   **`RoutesNotificationsViaPreferences`**: This is essential. It replaces the standard `via()` method logic to check user preferences.
-    *   **`HasChannelsContract` & `HasChannels` Trait (Optional but Recommended for fine-grained control):**
-        *   By implementing `HasChannelsContract` and using the `HasChannels` trait, your notification can specify its own set of available channels and default channels.
+    *   **`HasChannelSettingsContract` & `HasChannelSettings` Trait (Optional but Recommended for fine-grained control):**
+        *   By implementing `HasChannelSettingsContract` and using the `HasChannelSettings` trait, your notification can specify its own set of available channels and default channels.
         *   **`$availableChannels` property**: If you define this protected property in your notification (e.g., `protected array $availableChannels = ['mail', 'database'];`), only these channels will be considered for this specific notification, even if more are globally available. If a user has a preference for a channel not in this list for *this* notification, it won't be used.
-        *   **`$defaultChannels` property**: If you define this protected property (e.g., `protected array $defaultChannels = ['mail'];`), these channels will be used for the notification if the user hasn't set any preferences for it *and* this notification uses the `HasChannels` trait.
-        *   If these properties are not set in your notification class, the `HasChannels` trait will fall back to the global `channels` and `defaultChannels` (derived from global `channels`) defined in your `config/notification-preferences.php` file.
+        *   **`$defaultChannels` property**: If you define this protected property (e.g., `protected array $defaultChannels = ['mail'];`), these channels will be used for the notification if the user hasn't set any preferences for it *and* this notification uses the `HasChannelSettings` trait.
+        *   If these properties are not set in your notification class, the `HasChannelSettings` trait will fall back to the global `channels` and `defaultChannels` (derived from global `channels`) defined in your `config/notification-preferences.php` file.
 
-    *Note: If you don't use the `HasChannels` interface and trait on a notification, the `RoutesNotificationsViaPreferences` trait will use the globally configured default channels from `config/notification-preferences.php` when no user preference is found.*
+    *Note: If you don't use the `HasChannelSettings` interface and trait on a notification, the `RoutesNotificationsViaPreferences` trait will use the globally configured default channels from `config/notification-preferences.php` when no user preference is found.*
 
 3.  **Managing Preferences (Example):**
     You will need to build an interface for users to manage their preferences. Here's a conceptual example of how you might update preferences in your controller:

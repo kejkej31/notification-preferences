@@ -2,7 +2,7 @@
 
 namespace KejKej\NotificationPreferences\Traits;
 
-use KejKej\NotificationPreferences\Contracts\HasChannels;
+use KejKej\NotificationPreferences\Contracts\HasChannelSettings;
 use KejKej\NotificationPreferences\Contracts\HasNotificationPreferences;
 use KejKej\NotificationPreferences\Contracts\NotificationConfigurator;
 
@@ -28,7 +28,7 @@ trait RoutesNotificationsViaPreferences
             if (isset($preferences[$notificationName])) {
                 $activeChannels = $preferences[$notificationName];
 
-                if($this instanceof HasChannels) {
+                if($this instanceof HasChannelSettings) {
                     $availableChannels = $this->getAvailableChannels();
                     $activeChannels = array_intersect(
                         $activeChannels, 
@@ -40,7 +40,7 @@ trait RoutesNotificationsViaPreferences
             }
         }
 
-        if($this instanceof HasChannels) {
+        if($this instanceof HasChannelSettings) {
             return $this->getDefaultChannels();
         }
 
