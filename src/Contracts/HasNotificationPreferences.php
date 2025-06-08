@@ -4,5 +4,5 @@ namespace KejKej\NotificationPreferences\Contracts;
 
 interface HasNotificationPreferences
 {
-    public function notificationPreferences(): array;
+    public function getNotificationPreferences(): array;
 }

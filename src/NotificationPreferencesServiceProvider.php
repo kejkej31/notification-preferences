@@ -24,8 +24,8 @@ class NotificationPreferencesServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->app->bind(
-            \KejKej\NotificationPreferences\Contracts\NotificationConfiguratorContract::class,
+        $this->app->singleton(
+            \KejKej\NotificationPreferences\Contracts\NotificationConfigurator::class,
             \KejKej\NotificationPreferences\Services\NotificationConfigurator::class
         );
     }
