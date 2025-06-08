@@ -20,10 +20,6 @@ trait HasNotificationPreferences
         $notificationConfigurator = app(NotificationConfigurator::class);
         return Attribute::make(
             get: function (string $value) use ($notificationConfigurator) {
-                if (empty($notifications) || empty($channels))
-                {
-                    return [];
-                }
                 $preferences = $value ? (json_decode($value, true) ?: []) : [];
                 $result = $notificationConfigurator->notificationPreferencesObject();
                 foreach ($preferences as $event => $preferedChannels)
@@ -47,10 +43,6 @@ trait HasNotificationPreferences
                     'channels' => $channels,
                     'notifications' => $notifications
                 ] = $notificationConfigurator->all();
-                if (empty($notifications) || empty($channels))
-                {
-                    return [];
-                }
                 $filtered = [];
                 foreach ($value as $event => $preferedChannels)
                 {
