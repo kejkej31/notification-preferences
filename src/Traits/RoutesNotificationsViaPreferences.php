@@ -44,10 +44,6 @@ trait RoutesNotificationsViaPreferences
             return $this->getDefaultChannels();
         }
 
-        if (method_exists(parent::class, 'via')) {
-            return parent::via($notifiable);
-        }
-
         return [];
     }
 }
