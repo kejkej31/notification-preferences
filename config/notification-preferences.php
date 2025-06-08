@@ -12,9 +12,19 @@ return [
         // 'PostCreated' => App\Notifications\PostCreated::class,
     ],
 
+    /*
+    | Available notification channels that user can choose from.
+    */
     'channels' => [
         'mail',
         'database',
         // Other channels/routes
     ],
+
+    /* 
+    | Channels that should be used by default when user has not set any preferences.
+    */
+    'default_channels' => [
+        'mail',
+    ]
 ];
