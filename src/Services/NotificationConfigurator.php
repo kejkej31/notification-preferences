@@ -2,10 +2,38 @@
 
 namespace KejKej\NotificationPreferences\Services;
 
-use KejKej\NotificationPreferences\Contracts\NotificationConfiguratorContract;
+use KejKej\NotificationPreferences\Contracts\NotificationConfigurator as NotificationConfiguratorContract;
 
 class NotificationConfigurator implements NotificationConfiguratorContract
 {
+    protected static array $notificationPreferencesObject;
+
+    public function notificationPreferencesObject(): array
+    {
+        if(isset(static::$notificationPreferencesObject)) {
+            return static::$notificationPreferencesObject;
+        }
+        static::$notificationPreferencesObject = array_fill_keys(
+            array_keys($this->notifications()), 
+            array_fill_keys($this->channels(), false)
+        );
+        return static::$notificationPreferencesObject;
+    }
+
+    /**
+     * Find a notification by its class name.
+     *
+     * @param string $name
+     * @return string|null
+     */
+    public function findNotificationByClass(string $name): ?string
+    {
+        $notifications = $this->notifications();
+        $key = array_search($name, $notifications, true);
+
+        return $key !== false ? $key : null;
+    }
+    
     /**
      * Get the available notification types.
      *
