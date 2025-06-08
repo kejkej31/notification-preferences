@@ -16,7 +16,7 @@ interface NotificationConfiguratorContract
      *
      * @return array
      */
-    public function notifiations(): array;
+    public function notifications(): array;
 
     /**
      * Get all notification preferences configuration.

@@ -21,7 +21,7 @@ class NotificationConfigurator implements NotificationConfiguratorContract
      *
      * @return array
      */
-    public function notifiations(): array
+    public function notifications(): array
     {
         return config('notification-preferences.notifications', []);
     }
@@ -35,7 +35,7 @@ class NotificationConfigurator implements NotificationConfiguratorContract
     {
         return [
             'channels' => $this->channels(),
-            'notifications' => $this->notifiations(),
+            'notifications' => $this->notifications(),
         ];
     }
 }
