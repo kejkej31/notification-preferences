@@ -19,6 +19,13 @@ interface NotificationConfiguratorContract
     public function notifications(): array;
 
     /**
+     * Get notification channels that should be used by default
+     *
+     * @return array
+     */
+    public function defaultChannels(): array;
+
+    /**
      * Get all notification preferences configuration.
      *
      * @return array
