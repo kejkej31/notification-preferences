@@ -19,6 +19,6 @@ trait HasChannels
         if (property_exists($this, 'defaultChannels')) {
             return $this->defaultChannels;
         }
-        return app(NotificationConfiguratorContract::class)->channels();
+        return app(NotificationConfiguratorContract::class)->defaultChannels();
     }
 }
