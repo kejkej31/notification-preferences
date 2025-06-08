@@ -16,11 +16,11 @@ trait RoutesNotificationsViaPreferences
      */
     public function via(mixed $notifiable): array
     {
+            $manager = app(NotificationConfigurator::class);
         if (
             method_exists($notifiable, 'notificationPreferences') && 
             $notifiable instanceof HasNotificationPreferences
         ) {
-            $manager = app(NotificationConfigurator::class);
             $notificationName = $manager->findNotificationByClass($this::class);
             
             $preferences = $notifiable->getNotificationPreferences();
@@ -44,6 +44,6 @@ trait RoutesNotificationsViaPreferences
             return $this->getDefaultChannels();
         }
 
-        return [];
+        return $manager->defaultChannels();
     }
 }
