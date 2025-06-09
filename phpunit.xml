@@ -1,0 +1,10 @@
+<phpunit>
+<testsuites>
+    <testsuite name="Feature">
+        <directory suffix="Test.php">./tests/Feature</directory>
+    </testsuite>
+</testsuites>
+<php>
+    <env name="DB_CONNECTION" value="testing"/>
+</php>
+</phpunit>
