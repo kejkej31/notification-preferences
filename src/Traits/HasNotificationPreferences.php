@@ -22,17 +22,13 @@ trait HasNotificationPreferences
             get: function (string $value) use ($notificationConfigurator) {
                 $preferences = $value ? (json_decode($value, true) ?: []) : [];
                 $result = $notificationConfigurator->notificationPreferencesObject();
-                foreach ($preferences as $event => $preferedChannels)
+                foreach ($result as $event => $channels)
                 {
-                    if (!isset($result[$event]))
+                    foreach ($channels as $channel => $value)
                     {
-                        continue;
-                    }
-                    foreach ($preferedChannels as $channel)
-                    {
-                        if (isset($result[$event][$channel]))
+                        if (isset($preferences[$event]))
                         {
-                            $result[$event][$channel] = true;
+                            $result[$event][$channel] = in_array($channel, $preferences[$event], true);
                         }
                     }
                 }
