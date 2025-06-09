@@ -2,7 +2,7 @@
 
 namespace KejKej\NotificationPreferences\Contracts;
 
-interface HasChannels
+interface HasChannelSettings
 {
     /**
      * Get the list of channels this notification can be sent on.
