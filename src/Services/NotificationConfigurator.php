@@ -10,12 +10,12 @@ class NotificationConfigurator implements NotificationConfiguratorContract
 
     public function notificationPreferencesObject(): array
     {
-        if(isset(static::$notificationPreferencesObject)) {
+        if (isset(static::$notificationPreferencesObject)) {
             return static::$notificationPreferencesObject;
         }
         static::$notificationPreferencesObject = array_fill_keys(
-            array_keys($this->notifications()), 
-            array_fill_keys($this->channels(), false)
+            array_keys($this->notifications()),
+            array_fill_keys($this->channels(), null)
         );
         return static::$notificationPreferencesObject;
     }
@@ -33,7 +33,7 @@ class NotificationConfigurator implements NotificationConfiguratorContract
 
         return $key !== false ? $key : null;
     }
-    
+
     /**
      * Get the available notification types.
      *
@@ -53,7 +53,7 @@ class NotificationConfigurator implements NotificationConfiguratorContract
     {
         return config('notification-preferences.default_channels', []);
     }
-    
+
     /**
      * Get the available notification channels.
      *
