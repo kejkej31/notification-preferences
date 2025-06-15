@@ -148,21 +148,30 @@ This package provides a flexible way to manage user notification preferences in 
     public function getNotificationPreferences(User $user)
     {
         $preferences = $user->getNotificationPreferences(); // Method from HasNotificationPreferences trait
-        // $preferences will be an array of all notifications defined in config, along with user's settings
-        // Data in database:
-        // users.notification_preferences: {"PostCreated":["mail"]}
-        // Returned array:
+        // $preferences contains all notification types defined in your config.
+        // For each notification type:
+        // - If the user has set preferences for this type:
+        //   - Channels explicitly enabled by the user will be `true`.
+        //   - Channels not explicitly enabled by the user (but available for this type) will be `false`.
+        // - If the user has NOT set any preferences for this notification type:
+        //   - All channels for this type will be `null`.
+        //
+        // Example:
+        // Assuming config has "PostCreated" and "CommentReplied", each with "mail", "database", "sms" channels.
+        // User's saved data in database for `notification_preferences` column: {"PostCreated":["mail"]}
+        //
+        // Returned array from $user->getNotificationPreferences():
         // [
-        // "PostCreated" => [
-        //      "mail" => true, <-- This is true due to users notification preferences
-        //      "database" => false,
-        //      "sms" => false,
+        //    "PostCreated" => [
+        //      "mail" => true,     // User enabled this
+        //      "database" => false,  // User did not enable this, but has settings for PostCreated
+        //      "sms" => false      // User did not enable this, but has settings for PostCreated
         //    ],
-        //    "CommentReplied" => [
-        //      "mail" => false,
-        //      "database" => false,
-        //      "sms" => false,
-        //    ],
+        //    "CommentReplied" => [ // User has no settings for CommentReplied
+        //      "mail" => null,
+        //      "database" => null,
+        //      "sms" => null
+        //    ]
         // ]
 
         // Pass this data to a view to render the preferences form
