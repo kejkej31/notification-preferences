@@ -5,10 +5,8 @@ This package provides a flexible way to manage user notification preferences in 
 ## Features
 
 - Allows users to specify their preferred notification channels (e.g., mail, database) for different types of notifications.
-- Developers can easily register new notifiable events.
 - Automatically routes notifications based on user preferences.
-- Provides a configuration file for defining available notifications and channels.
-- Includes database migrations to store user notification preferences.
+- Developer can define available notifications and channels, both globally and per notification.
 - Uses traits to easily integrate notification preference management into existing User models and Notification classes.
 
 ## Installation
