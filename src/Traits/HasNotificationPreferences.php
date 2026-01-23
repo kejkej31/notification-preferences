@@ -19,7 +19,7 @@ trait HasNotificationPreferences
     {
         $notificationConfigurator = app(NotificationConfigurator::class);
         return Attribute::make(
-            get: function (string $value) use ($notificationConfigurator) {
+            get: function (?string $value) use ($notificationConfigurator) {
                 $preferences = $value ? (json_decode($value, true) ?: []) : [];
                 $result = $notificationConfigurator->notificationPreferencesObject();
                 foreach ($result as $event => $channels) {
