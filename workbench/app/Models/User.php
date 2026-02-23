@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use KejKej\NotificationPreferences\Traits\HasNotificationPreferences;
 
-class User extends Authenticatable implements \KejKej\NotificationPreferences\Contracts\HasNotificationPreferences
+class User extends Authenticatable
 {
     /** @use HasFactory<\Workbench\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasNotificationPreferences;

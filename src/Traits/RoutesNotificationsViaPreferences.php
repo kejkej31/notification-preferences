@@ -2,8 +2,6 @@
 
 namespace KejKej\NotificationPreferences\Traits;
 
-use KejKej\NotificationPreferences\Contracts\HasChannelSettings;
-use KejKej\NotificationPreferences\Contracts\HasNotificationPreferences;
 use KejKej\NotificationPreferences\Contracts\NotificationConfigurator;
 
 trait RoutesNotificationsViaPreferences
@@ -12,42 +10,29 @@ trait RoutesNotificationsViaPreferences
      * Get the notification channels.
      *
      * @param  mixed  $notifiable
-     * @return array|string
+     * @return array<int, string>
      */
     public function via(mixed $notifiable): array
     {
         $manager = app(NotificationConfigurator::class);
-        if (
-            method_exists($notifiable, 'notificationPreferences') &&
-            $notifiable instanceof HasNotificationPreferences
-        ) {
-            $notificationName = $manager->findNotificationByClass($this::class);
 
-            $preferences = $notifiable->getNotificationPreferences();
-
-            if (
-                isset($preferences[$notificationName]) &&
-                array_filter($preferences[$notificationName], fn($channel) => $channel !== null)
-            ) {
-                $activeChannels = array_keys(
-                    array_filter($preferences[$notificationName], fn($channel) => $channel === true)
-                );
-                if ($this instanceof HasChannelSettings) {
-                    $availableChannels = $this->getAvailableChannels();
-                    $activeChannels = array_intersect(
-                        $activeChannels,
-                        $availableChannels
-                    );
-                }
-
-                return $activeChannels;
-            }
+        if (!is_object($notifiable) || !method_exists($notifiable, 'getEnabledChannelsForNotification')) {
+            return $manager->defaultChannelsForNotification($this);
         }
 
-        if ($this instanceof HasChannelSettings) {
-            return $this->getDefaultChannels();
+        $notificationName = $manager->findNotificationByClass($this::class);
+        if ($notificationName === null) {
+            return $manager->defaultChannelsForNotification($this);
         }
 
-        return $manager->defaultChannels();
+        $selectedChannels = $notifiable->getEnabledChannelsForNotification($notificationName);
+        if ($selectedChannels === null) {
+            return $manager->defaultChannelsForNotification($this);
+        }
+
+        return array_values(array_intersect(
+            $manager->availableChannelsForNotification($this),
+            $selectedChannels
+        ));
     }
 }

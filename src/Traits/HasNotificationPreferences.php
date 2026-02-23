@@ -3,13 +3,29 @@
 namespace KejKej\NotificationPreferences\Traits;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use KejKej\NotificationPreferences\DTO\NotificationPreferencesMatrix;
 use KejKej\NotificationPreferences\Contracts\NotificationConfigurator;
 
 trait HasNotificationPreferences
 {
-    public function getNotificationPreferences(): array
+    public function getNotificationPreferences(): NotificationPreferencesMatrix
     {
-        return $this->notification_preferences;
+        return app(NotificationConfigurator::class)
+            ->preferenceMatrix($this->getRawStoredNotificationPreferences());
+    }
+
+    /**
+     * @return array<string, array<string, bool|null>>
+     */
+    public function getNotificationPreferencesMap(): array
+    {
+        return $this->getNotificationPreferences()->toPreferenceMap();
+    }
+
+    public function getEnabledChannelsForNotification(string $notificationName): ?array
+    {
+        return app(NotificationConfigurator::class)
+            ->selectedChannelsForNotification($this->getRawStoredNotificationPreferences(), $notificationName);
     }
 
     /**
@@ -21,40 +37,20 @@ trait HasNotificationPreferences
 
         return Attribute::make(
             get: function (?string $value) use ($notificationConfigurator) {
-                $preferences = $value ? (json_decode($value, true) ?: []) : [];
-                $configuredPreferences = $notificationConfigurator->notificationPreferencesObject();
-                $result = \is_array($configuredPreferences) ? $configuredPreferences : [];
-
-                foreach ($result as $event => $channels) {
-                    if (!\is_array($channels) || !isset($preferences[$event]) || !is_array($preferences[$event])) {
-                        continue;
-                    }
-
-                    $result[$event] = array_replace($channels, $preferences[$event]);
-                }
-
-                return $result;
+                return $notificationConfigurator->preferenceMatrix($value)->toPreferenceMap();
             },
-            set: function (array $value) use ($notificationConfigurator) {
-                [
-                    'channels' => $channels,
-                    'notifications' => $notifications,
-                ] = $notificationConfigurator->all();
-
-                $filtered = [];
-                foreach ($value as $event => $preferredChannels) {
-                    if (!array_key_exists($event, $notifications)) {
-                        continue;
-                    }
-
-                    $filtered[$event] = array_intersect_key(
-                        $preferredChannels,
-                        array_flip($channels)
-                    );
-                }
-
-                return json_encode($filtered);
+            set: function (mixed $value) use ($notificationConfigurator) {
+                return json_encode($notificationConfigurator->normalizeStoredPreferences($value));
             },
         )->withoutObjectCaching();
+    }
+
+    protected function getRawStoredNotificationPreferences(): mixed
+    {
+        if (method_exists($this, 'getRawOriginal')) {
+            return $this->getRawOriginal('notification_preferences');
+        }
+
+        return $this->attributes['notification_preferences'] ?? null;
     }
 }

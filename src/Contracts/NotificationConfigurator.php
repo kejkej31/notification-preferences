@@ -2,6 +2,8 @@
 
 namespace KejKej\NotificationPreferences\Contracts;
 
+use KejKej\NotificationPreferences\DTO\NotificationPreferencesMatrix;
+
 interface NotificationConfigurator
 {
     /**
@@ -9,9 +11,9 @@ interface NotificationConfigurator
      * This object contains all available notifications and channels,
      * with values set to false.
      *
-     * @return string
+    * @return NotificationPreferencesMatrix
      */
-    public function notificationPreferencesObject(): array;
+    public function notificationPreferencesObject(): NotificationPreferencesMatrix;
 
     /**
      * Find a notification by its class name.
@@ -41,6 +43,47 @@ interface NotificationConfigurator
      * @return array
      */
     public function defaultChannels(): array;
+
+    /**
+     * Get available channels for a concrete notification instance.
+     *
+     * @param object $notification
+     * @return array<int, string>
+     */
+    public function availableChannelsForNotification(object $notification): array;
+
+    /**
+     * Get default channels for a concrete notification instance.
+     *
+     * @param object $notification
+     * @return array<int, string>
+     */
+    public function defaultChannelsForNotification(object $notification): array;
+
+    /**
+     * Normalize user provided preferences to a storable shape.
+     *
+     * @param mixed $value
+     * @return array<string, array<int, string>>
+     */
+    public function normalizeStoredPreferences(mixed $value): array;
+
+    /**
+     * Build a full notification/channel matrix for UI consumption.
+     *
+     * @param mixed $value
+    * @return NotificationPreferencesMatrix
+     */
+    public function preferenceMatrix(mixed $value): NotificationPreferencesMatrix;
+
+    /**
+     * Get user-selected channels for a specific notification key.
+     *
+     * @param mixed $value
+     * @param string $notificationName
+     * @return array<int, string>|null
+     */
+    public function selectedChannelsForNotification(mixed $value, string $notificationName): ?array;
 
     /**
      * Get all notification preferences configuration.

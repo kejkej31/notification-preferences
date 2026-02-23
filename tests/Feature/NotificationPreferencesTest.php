@@ -57,7 +57,10 @@ class NotificationPreferencesTest extends \Orchestra\Testbench\TestCase
         $user->notification_preferences = $preferences;
         $user->save();
 
-        $retrievedPreferences = $user->getNotificationPreferences();
+        $retrievedPreferences = $user->getNotificationPreferences()->toPreferenceMap();
+
+        $storedPreferences = json_decode($user->getRawOriginal('notification_preferences'), true);
+        $this->assertEquals($preferences, $storedPreferences);
 
         $expectedRetrievedPreferences = [
             'TestNotificationWithDefaults' => [
@@ -199,16 +202,83 @@ class NotificationPreferencesTest extends \Orchestra\Testbench\TestCase
 
         $user->notify(new TestNotificationWithRestrictedAvailableChannels());
 
-        // Should fall back to the notification's own default ('mail') because 'database' is not available.
-        Notification::assertSentTo(
-            $user,
-            TestNotificationWithRestrictedAvailableChannels::class,
-            function ($notification, $channels) {
-                $this->assertCount(1, $channels);
-                $this->assertEquals('mail', $channels[0]);
-                $this->assertNotContains('database', $channels);
-                $this->assertNotContains('slack', $channels);
-                return true;
-            });
+        // User has explicit preference, but none of selected channels are available for this notification.
+        Notification::assertNotSentTo($user, TestNotificationWithRestrictedAvailableChannels::class);
+    }
+
+    /** @test */
+    public function adding_new_notification_type_after_user_has_saved_preferences_builds_complete_matrix()
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        $user->notification_preferences = [
+            'TestNotificationWithDefaults' => ['mail'],
+        ];
+        $user->save();
+
+        config()->set('notification-preferences.notifications', [
+            ...config('notification-preferences.notifications'),
+            'NewlyAddedNotificationType' => TestNotificationWithDefaults::class,
+        ]);
+
+        $user->refresh();
+        $preferences = $user->getNotificationPreferences()->toPreferenceMap();
+
+        $this->assertArrayHasKey('NewlyAddedNotificationType', $preferences);
+        $this->assertEquals([
+            'mail' => null,
+            'database' => null,
+            'slack' => null,
+        ], $preferences['NewlyAddedNotificationType']);
+
+        $this->assertTrue($preferences['TestNotificationWithDefaults']['mail']);
+        $this->assertFalse($preferences['TestNotificationWithDefaults']['database']);
+        $this->assertFalse($preferences['TestNotificationWithDefaults']['slack']);
+    }
+
+    /** @test */
+    public function unknown_notification_and_channels_are_dropped_on_write()
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        $user->notification_preferences = [
+            'TestNotificationWithDefaults' => ['mail', 'invalid-channel', 'mail'],
+            'UnknownNotification' => ['mail'],
+        ];
+        $user->save();
+
+        $storedPreferences = json_decode($user->getRawOriginal('notification_preferences'), true);
+
+        $this->assertEquals([
+            'TestNotificationWithDefaults' => ['mail'],
+        ], $storedPreferences);
+    }
+
+    /** @test */
+    public function legacy_unknown_data_is_ignored_on_read_but_preserved_until_rewrite()
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        User::query()->whereKey($user->id)->update([
+            'notification_preferences' => json_encode([
+                'UnknownNotification' => ['mail'],
+                'TestNotificationWithDefaults' => ['mail', 'unknown-channel'],
+            ]),
+        ]);
+
+        $user->refresh();
+        $preferences = $user->getNotificationPreferences()->toPreferenceMap();
+
+        $this->assertArrayNotHasKey('UnknownNotification', $preferences);
+        $this->assertTrue($preferences['TestNotificationWithDefaults']['mail']);
+        $this->assertFalse($preferences['TestNotificationWithDefaults']['database']);
+        $this->assertFalse($preferences['TestNotificationWithDefaults']['slack']);
+
+        $rawStored = json_decode($user->getRawOriginal('notification_preferences'), true);
+        $this->assertArrayHasKey('UnknownNotification', $rawStored);
+        $this->assertContains('unknown-channel', $rawStored['TestNotificationWithDefaults']);
     }
 }

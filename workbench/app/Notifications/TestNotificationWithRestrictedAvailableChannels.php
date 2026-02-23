@@ -4,11 +4,10 @@ namespace Workbench\App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use KejKej\NotificationPreferences\Contracts\HasChannelSettings as HasChannelSettingsContract;
 use KejKej\NotificationPreferences\Traits\HasChannelSettings;
 use KejKej\NotificationPreferences\Traits\RoutesNotificationsViaPreferences;
 
-class TestNotificationWithRestrictedAvailableChannels extends Notification implements HasChannelSettingsContract
+class TestNotificationWithRestrictedAvailableChannels extends Notification
 {
     use Queueable, RoutesNotificationsViaPreferences, HasChannelSettings;
 
