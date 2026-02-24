@@ -1,0 +1,145 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Contracts\\NotificationConfigurator\:\:all\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Contracts/NotificationConfigurator.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Contracts\\NotificationConfigurator\:\:channels\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Contracts/NotificationConfigurator.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Contracts\\NotificationConfigurator\:\:defaultChannels\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Contracts/NotificationConfigurator.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Contracts\\NotificationConfigurator\:\:notifications\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Contracts/NotificationConfigurator.php
+
+		-
+			message: '#^Class KejKej\\NotificationPreferences\\DTO\\NotificationPreferenceRow implements generic interface Illuminate\\Contracts\\Support\\Arrayable but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/DTO/NotificationPreferenceRow.php
+
+		-
+			message: '#^Class KejKej\\NotificationPreferences\\DTO\\NotificationPreferencesMatrix implements generic interface Illuminate\\Contracts\\Support\\Arrayable but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/DTO/NotificationPreferencesMatrix.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Services\\NotificationConfigurator\:\:all\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/NotificationConfigurator.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Services\\NotificationConfigurator\:\:channels\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/NotificationConfigurator.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Services\\NotificationConfigurator\:\:defaultChannels\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/NotificationConfigurator.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Services\\NotificationConfigurator\:\:notifications\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/NotificationConfigurator.php
+
+		-
+			message: '#^Trait KejKej\\NotificationPreferences\\Traits\\HasChannelSettings is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Traits/HasChannelSettings.php
+
+		-
+			message: '#^Trait KejKej\\NotificationPreferences\\Traits\\HasNotificationPreferences is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Traits/HasNotificationPreferences.php
+
+		-
+			message: '#^Trait KejKej\\NotificationPreferences\\Traits\\RoutesNotificationsViaPreferences is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Traits/RoutesNotificationsViaPreferences.php
+
+		-
+			message: '#^Access to an undefined property Workbench\\App\\Models\\User\:\:\$notification_preferences\.$#'
+			identifier: property.notFound
+			count: 7
+			path: tests/Feature/NotificationPreferencesTest.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Tests\\Feature\\NotificationPreferencesTest\:\:adding_new_notification_type_after_user_has_saved_preferences_builds_complete_matrix\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: tests/Feature/NotificationPreferencesTest.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Tests\\Feature\\NotificationPreferencesTest\:\:legacy_unknown_data_is_ignored_on_read_but_preserved_until_rewrite\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: tests/Feature/NotificationPreferencesTest.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Tests\\Feature\\NotificationPreferencesTest\:\:malformed_preference_payload_is_safely_sanitized\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: tests/Feature/NotificationPreferencesTest.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Tests\\Feature\\NotificationPreferencesTest\:\:notification_respects_its_own_available_channels_even_if_user_prefers_unavailable_one\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: tests/Feature/NotificationPreferencesTest.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Tests\\Feature\\NotificationPreferencesTest\:\:notification_uses_its_own_default_channel_if_user_preference_is_not_available\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: tests/Feature/NotificationPreferencesTest.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Tests\\Feature\\NotificationPreferencesTest\:\:test_notification_is_routed_based_on_user_preferences\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: tests/Feature/NotificationPreferencesTest.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Tests\\Feature\\NotificationPreferencesTest\:\:test_notification_with_own_defaults_is_routed_to_its_defaults_when_user_has_no_preference\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: tests/Feature/NotificationPreferencesTest.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Tests\\Feature\\NotificationPreferencesTest\:\:test_notification_without_own_defaults_is_routed_to_global_defaults_when_user_has_no_preference\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: tests/Feature/NotificationPreferencesTest.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Tests\\Feature\\NotificationPreferencesTest\:\:test_user_can_set_and_get_notification_preferences\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: tests/Feature/NotificationPreferencesTest.php
+
+		-
+			message: '#^Method KejKej\\NotificationPreferences\\Tests\\Feature\\NotificationPreferencesTest\:\:unknown_notification_and_channels_are_dropped_on_write\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: tests/Feature/NotificationPreferencesTest.php
