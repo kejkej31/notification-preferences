@@ -1,0 +1,13 @@
+/tests export-ignore
+/workbench export-ignore
+/build export-ignore
+/.github export-ignore
+
+/phpunit.xml export-ignore
+/phpstan.neon export-ignore
+/phpstan-baseline.neon export-ignore
+/pint.json export-ignore
+/testbench.yaml export-ignore
+
+/.gitignore export-ignore
+/.phpunit.result.cache export-ignore
