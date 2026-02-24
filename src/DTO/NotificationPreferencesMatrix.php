@@ -8,12 +8,11 @@ use JsonSerializable;
 class NotificationPreferencesMatrix implements Arrayable, JsonSerializable
 {
     /**
-     * @param array<string, NotificationPreferenceRow> $rows
+     * @param  array<string, NotificationPreferenceRow>  $rows
      */
     public function __construct(
         protected array $rows,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<string, NotificationPreferenceRow>

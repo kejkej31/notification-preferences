@@ -3,8 +3,8 @@
 namespace KejKej\NotificationPreferences\Traits;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use KejKej\NotificationPreferences\DTO\NotificationPreferencesMatrix;
 use KejKej\NotificationPreferences\Contracts\NotificationConfigurator;
+use KejKej\NotificationPreferences\DTO\NotificationPreferencesMatrix;
 
 trait HasNotificationPreferences
 {

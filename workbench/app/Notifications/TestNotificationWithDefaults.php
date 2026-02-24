@@ -9,9 +9,10 @@ use KejKej\NotificationPreferences\Traits\RoutesNotificationsViaPreferences;
 
 class TestNotificationWithDefaults extends Notification
 {
-    use Queueable, RoutesNotificationsViaPreferences, HasChannelSettings;
+    use HasChannelSettings, Queueable, RoutesNotificationsViaPreferences;
 
     protected array $availableChannels = ['mail', 'database', 'slack'];
+
     protected array $defaultChannels = ['mail', 'database'];
 
     public function __construct()
@@ -22,13 +23,13 @@ class TestNotificationWithDefaults extends Notification
     public function toMail($notifiable)
     {
         return (new \Illuminate\Notifications\Messages\MailMessage)
-                    ->line('This is a test notification with defaults (mail).');
+            ->line('This is a test notification with defaults (mail).');
     }
 
     public function toArray($notifiable)
     {
         return [
-            'message' => 'This is a test notification with defaults (database).'
+            'message' => 'This is a test notification with defaults (database).',
         ];
     }
 

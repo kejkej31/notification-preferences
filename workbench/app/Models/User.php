@@ -11,7 +11,7 @@ use KejKej\NotificationPreferences\Traits\HasNotificationPreferences;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Workbench\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasNotificationPreferences;
+    use HasFactory, HasNotificationPreferences, Notifiable;
 
     /**
      * The attributes that are mass assignable.

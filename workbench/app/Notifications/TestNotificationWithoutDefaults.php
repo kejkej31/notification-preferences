@@ -5,6 +5,7 @@ namespace Workbench\App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use KejKej\NotificationPreferences\Traits\RoutesNotificationsViaPreferences;
+
 // No HasChannelSettingsContract or HasChannelSettings trait here, so it will use global defaults
 
 class TestNotificationWithoutDefaults extends Notification
@@ -19,13 +20,13 @@ class TestNotificationWithoutDefaults extends Notification
     public function toMail($notifiable)
     {
         return (new \Illuminate\Notifications\Messages\MailMessage)
-                    ->line('This is a test notification without defaults (mail).');
+            ->line('This is a test notification without defaults (mail).');
     }
 
     public function toArray($notifiable)
     {
         return [
-            'message' => 'This is a test notification without defaults (database).'
+            'message' => 'This is a test notification without defaults (database).',
         ];
     }
 

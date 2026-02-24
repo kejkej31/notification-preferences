@@ -2,12 +2,12 @@
 
 namespace KejKej\NotificationPreferences\Tests\Feature;
 
-use Workbench\App\Models\User;
 use Illuminate\Contracts\Config\Repository;
-use Illuminate\Support\Facades\Notification;
-use PHPUnit\Framework\Attributes\Test;
-use Orchestra\Testbench\Attributes\WithMigration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
+use Orchestra\Testbench\Attributes\WithMigration;
+use PHPUnit\Framework\Attributes\Test;
+use Workbench\App\Models\User;
 use Workbench\App\Notifications\TestNotificationWithDefaults;
 use Workbench\App\Notifications\TestNotificationWithoutDefaults;
 use Workbench\App\Notifications\TestNotificationWithRestrictedAvailableChannels;
@@ -99,7 +99,7 @@ class NotificationPreferencesTest extends \Orchestra\Testbench\TestCase
         $user->save();
 
         // Send the notification
-        $user->notify(new TestNotificationWithDefaults());
+        $user->notify(new TestNotificationWithDefaults);
 
         // Assert it was only sent to slack
         Notification::assertSentTo(
@@ -108,6 +108,7 @@ class NotificationPreferencesTest extends \Orchestra\Testbench\TestCase
             function (TestNotificationWithDefaults $notification, array $channels) {
                 $this->assertCount(1, $channels);
                 $this->assertEquals('slack', $channels[0]);
+
                 return true;
             }
         );
@@ -122,7 +123,7 @@ class NotificationPreferencesTest extends \Orchestra\Testbench\TestCase
         $user = new \Workbench\Database\Factories\UserFactory()->create();
 
         // Send the notification that has its own default channels
-        $user->notify(new TestNotificationWithDefaults());
+        $user->notify(new TestNotificationWithDefaults);
 
         // Assert it was sent to its defined default channels ('mail', 'database')
         Notification::assertSentTo(
@@ -133,6 +134,7 @@ class NotificationPreferencesTest extends \Orchestra\Testbench\TestCase
                 $this->assertContains('mail', $channels);
                 $this->assertContains('database', $channels);
                 $this->assertNotContains('slack', $channels);
+
                 return true;
             });
     }
@@ -146,7 +148,7 @@ class NotificationPreferencesTest extends \Orchestra\Testbench\TestCase
         $user = new \Workbench\Database\Factories\UserFactory()->create();
 
         // Send the notification that does not have its own default channels
-        $user->notify(new TestNotificationWithoutDefaults());
+        $user->notify(new TestNotificationWithoutDefaults);
 
         $manager = app(\KejKej\NotificationPreferences\Contracts\NotificationConfigurator::class);
         $defaultChannels = $manager->defaultChannels();
@@ -157,6 +159,7 @@ class NotificationPreferencesTest extends \Orchestra\Testbench\TestCase
             function ($notification, $channels) use ($defaultChannels) {
                 $this->assertCount(count($defaultChannels), $channels);
                 $this->assertEquals($defaultChannels, $channels);
+
                 return true;
             });
     }
@@ -175,7 +178,7 @@ class NotificationPreferencesTest extends \Orchestra\Testbench\TestCase
         ];
         $user->save();
 
-        $user->notify(new TestNotificationWithRestrictedAvailableChannels());
+        $user->notify(new TestNotificationWithRestrictedAvailableChannels);
 
         // Should only be sent to 'slack' because 'database' is not available for this specific notification.
         Notification::assertSentTo($user, TestNotificationWithRestrictedAvailableChannels::class, function ($notification, $channels) {
@@ -183,6 +186,7 @@ class NotificationPreferencesTest extends \Orchestra\Testbench\TestCase
             $this->assertEquals('slack', $channels[0]);
             $this->assertNotContains('database', $channels);
             $this->assertNotContains('mail', $channels); // 'mail' is available and default, but user didn't select it.
+
             return true;
         });
     }
@@ -201,7 +205,7 @@ class NotificationPreferencesTest extends \Orchestra\Testbench\TestCase
         ];
         $user->save();
 
-        $user->notify(new TestNotificationWithRestrictedAvailableChannels());
+        $user->notify(new TestNotificationWithRestrictedAvailableChannels);
 
         // User has explicit preference, but none of selected channels are available for this notification.
         Notification::assertNotSentTo($user, TestNotificationWithRestrictedAvailableChannels::class);
@@ -303,7 +307,7 @@ class NotificationPreferencesTest extends \Orchestra\Testbench\TestCase
             'TestNotificationWithoutDefaults' => 'mail',
             'TestNotificationWithRestrictedAvailableChannels' => [
                 'slack',
-                new \stdClass(),
+                new \stdClass,
             ],
             10 => ['mail'],
         ];

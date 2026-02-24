@@ -13,14 +13,14 @@ class NotificationPreferencesServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         $this->publishes([
-            __DIR__ . '/../config/notification-preferences.php' => config_path('notification-preferences.php'),
+            __DIR__.'/../config/notification-preferences.php' => config_path('notification-preferences.php'),
         ], 'notification-preferences-config');
 
         $this->publishesMigrations([
-            __DIR__ . '/../database/migrations' => database_path('migrations')
+            __DIR__.'/../database/migrations' => database_path('migrations'),
         ], 'notification-preferences-migrations');
     }
 

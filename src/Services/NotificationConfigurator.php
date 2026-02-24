@@ -25,9 +25,6 @@ class NotificationConfigurator implements NotificationConfiguratorContract
 
     /**
      * Find a notification by its class name.
-     *
-     * @param string $name
-     * @return string|null
      */
     public function findNotificationByClass(string $name): ?string
     {
@@ -39,8 +36,6 @@ class NotificationConfigurator implements NotificationConfiguratorContract
 
     /**
      * Get the available notification types.
-     *
-     * @return array
      */
     public function notifications(): array
     {
@@ -49,8 +44,6 @@ class NotificationConfigurator implements NotificationConfiguratorContract
 
     /**
      * Get notification channels that should be used by default.
-     *
-     * @return array
      */
     public function defaultChannels(): array
     {
@@ -59,8 +52,6 @@ class NotificationConfigurator implements NotificationConfiguratorContract
 
     /**
      * Get the available notification channels.
-     *
-     * @return array
      */
     public function channels(): array
     {
@@ -102,18 +93,18 @@ class NotificationConfigurator implements NotificationConfiguratorContract
         $channelsLookup = array_flip($this->channels());
 
         foreach (array_keys($this->notifications()) as $notificationName) {
-            if (!array_key_exists($notificationName, $decodedPreferences)) {
+            if (! array_key_exists($notificationName, $decodedPreferences)) {
                 continue;
             }
 
             $preferredChannels = $decodedPreferences[$notificationName];
-            if (!is_array($preferredChannels)) {
+            if (! is_array($preferredChannels)) {
                 continue;
             }
 
             $filteredChannels = [];
             foreach ($preferredChannels as $channel) {
-                if (!is_string($channel) || !array_key_exists($channel, $channelsLookup)) {
+                if (! is_string($channel) || ! array_key_exists($channel, $channelsLookup)) {
                     continue;
                 }
 
@@ -132,7 +123,7 @@ class NotificationConfigurator implements NotificationConfiguratorContract
         $matrix = $this->notificationPreferencesObject()->toPreferenceMap();
 
         foreach ($matrix as $notificationName => $channelMatrix) {
-            if (!array_key_exists($notificationName, $normalized)) {
+            if (! array_key_exists($notificationName, $normalized)) {
                 continue;
             }
 
@@ -157,7 +148,7 @@ class NotificationConfigurator implements NotificationConfiguratorContract
     {
         $decodedPreferences = $this->decodePreferences($value);
 
-        if (!array_key_exists($notificationName, $decodedPreferences)) {
+        if (! array_key_exists($notificationName, $decodedPreferences)) {
             return null;
         }
 
@@ -168,8 +159,6 @@ class NotificationConfigurator implements NotificationConfiguratorContract
 
     /**
      * Get all notification preferences configuration.
-     *
-     * @return array
      */
     public function all(): array
     {
@@ -181,7 +170,6 @@ class NotificationConfigurator implements NotificationConfiguratorContract
     }
 
     /**
-     * @param mixed $value
      * @return array<string, mixed>
      */
     protected function decodePreferences(mixed $value): array
@@ -196,18 +184,17 @@ class NotificationConfigurator implements NotificationConfiguratorContract
     }
 
     /**
-     * @param mixed $channels
      * @return array<int, string>
      */
     protected function sanitizeChannels(mixed $channels): array
     {
-        if (!is_array($channels)) {
+        if (! is_array($channels)) {
             return [];
         }
 
         $sanitized = [];
         foreach ($channels as $channel) {
-            if (!is_string($channel) || $channel === '') {
+            if (! is_string($channel) || $channel === '') {
                 continue;
             }
 

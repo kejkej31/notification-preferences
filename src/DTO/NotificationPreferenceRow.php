@@ -8,14 +8,12 @@ use JsonSerializable;
 class NotificationPreferenceRow implements Arrayable, JsonSerializable
 {
     /**
-     * @param string $notification
-     * @param array<string, bool|null> $channels
+     * @param  array<string, bool|null>  $channels
      */
     public function __construct(
         public readonly string $notification,
         public readonly array $channels,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<int, string>

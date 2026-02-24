@@ -2,10 +2,10 @@
 
 namespace KejKej\NotificationPreferences\Tests\Feature;
 
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\Test;
 use KejKej\NotificationPreferences\DTO\NotificationPreferenceRow;
 use KejKej\NotificationPreferences\DTO\NotificationPreferencesMatrix;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
 class NotificationPreferencesMatrixDtoTest extends TestCase
 {

@@ -9,14 +9,13 @@ trait RoutesNotificationsViaPreferences
     /**
      * Get the notification channels.
      *
-     * @param  mixed  $notifiable
      * @return array<int, string>
      */
     public function via(mixed $notifiable): array
     {
         $manager = app(NotificationConfigurator::class);
 
-        if (!is_object($notifiable) || !method_exists($notifiable, 'getEnabledChannelsForNotification')) {
+        if (! is_object($notifiable) || ! method_exists($notifiable, 'getEnabledChannelsForNotification')) {
             return $manager->defaultChannelsForNotification($this);
         }
 

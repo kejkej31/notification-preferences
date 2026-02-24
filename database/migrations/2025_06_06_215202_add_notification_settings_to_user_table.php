@@ -25,7 +25,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (!Schema::hasColumn('users', 'notification_preferences')) {
+        if (! Schema::hasColumn('users', 'notification_preferences')) {
             return;
         }
 
