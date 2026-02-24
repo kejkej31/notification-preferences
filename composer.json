@@ -62,6 +62,9 @@
             "@lint",
             "@analyse"
         ],
+        "major": "@php build/release-tag.php major",
+        "minor": "@php build/release-tag.php minor",
+        "patch": "@php build/release-tag.php patch",
         "serve": [
             "Composer\\Config::disableProcessTimeout",
             "@build",

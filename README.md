@@ -192,6 +192,24 @@ Run all quality checks:
 composer quality
 ```
 
+Create and push the next release tag from `HEAD`:
+
+```bash
+composer patch # 2.0.1 -> 2.0.2
+composer minor # 2.0.1 -> 2.1.0
+composer major # 2.0.1 -> 3.0.0
+```
+
+These commands fetch tags, calculate the next semantic version from the latest tag,
+create the new tag on the latest commit, and push that tag to the tracked remote.
+
+Enable repository git hooks (required once per clone):
+
+```bash
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-commit
+```
+
 ## CI quality gate rollout
 
 - Phase 1 (current): tests are required, while lint/static analysis run in soft-gate mode in CI.
