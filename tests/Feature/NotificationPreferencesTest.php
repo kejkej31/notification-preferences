@@ -5,333 +5,250 @@ namespace KejKej\NotificationPreferences\Tests\Feature;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use KejKej\NotificationPreferences\NotificationPreferencesServiceProvider;
 use Orchestra\Testbench\Attributes\WithMigration;
+use Orchestra\Testbench\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Workbench\App\Models\User;
+use Workbench\App\Notifications\TestNotificationNewType;
 use Workbench\App\Notifications\TestNotificationWithDefaults;
 use Workbench\App\Notifications\TestNotificationWithoutDefaults;
 use Workbench\App\Notifications\TestNotificationWithRestrictedAvailableChannels;
+use Workbench\Database\Factories\UserFactory;
 
 #[WithMigration]
-class NotificationPreferencesTest extends \Orchestra\Testbench\TestCase
+class NotificationPreferencesTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function createUser(): User
+    {
+        /** @var User $user */
+        $user = new UserFactory()->create();
+
+        return $user;
+    }
 
     protected function getPackageProviders($app)
     {
         return [
-            \KejKej\NotificationPreferences\NotificationPreferencesServiceProvider::class,
+            NotificationPreferencesServiceProvider::class,
         ];
+    }
+
+    protected function defineDatabaseMigrations(): void
+    {
+        $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
     }
 
     protected function defineEnvironment($app)
     {
         tap($app['config'], function (Repository $config) {
-            // Set up notification preferences config
             $config->set('notification-preferences.notifications', [
-                'TestNotificationWithDefaults' => TestNotificationWithDefaults::class,
-                'TestNotificationWithoutDefaults' => TestNotificationWithoutDefaults::class,
-                'TestNotificationWithRestrictedAvailableChannels' => TestNotificationWithRestrictedAvailableChannels::class, // Add new notification
-            ]);
-            $config->set('notification-preferences.channels', [
-                'mail',
-                'database',
-                'slack',
-            ]);
-            $config->set('notification-preferences.default_channels', [
-                'slack',
+                'with-defaults' => [
+                    'class' => TestNotificationWithDefaults::class,
+                    'channels' => ['mail', 'database', 'slack'],
+                    'default_channels' => ['mail', 'database'],
+                ],
+                'without-defaults' => [
+                    'class' => TestNotificationWithoutDefaults::class,
+                    'channels' => ['mail', 'database', 'slack'],
+                    'default_channels' => ['slack'],
+                ],
+                'restricted' => [
+                    'class' => TestNotificationWithRestrictedAvailableChannels::class,
+                    'channels' => ['mail', 'slack'],
+                    'default_channels' => ['mail'],
+                ],
             ]);
         });
     }
 
-    /** @test */
-    public function test_user_can_set_and_get_notification_preferences()
+    #[Test]
+    public function user_can_set_and_get_symmetric_notification_preferences(): void
     {
-        /** @var User $user */
-        $user = new \Workbench\Database\Factories\UserFactory()->create();
+        $user = $this->createUser();
 
         $preferences = [
-            'TestNotificationWithDefaults' => ['mail', 'database'],
-            'TestNotificationWithoutDefaults' => ['slack'],
+            'with-defaults' => ['mail', 'database'],
+            'without-defaults' => ['slack'],
         ];
 
         $user->notification_preferences = $preferences;
         $user->save();
+        $user->refresh();
 
-        $retrievedPreferences = $user->getNotificationPreferences()->toPreferenceMap();
+        $this->assertSame($preferences, $user->notification_preferences);
+        $this->assertSame($preferences['with-defaults'], $user->getNotificationPreference('with-defaults'));
+        $this->assertNull($user->getNotificationPreference('restricted'));
 
         $storedPreferences = json_decode($user->getRawOriginal('notification_preferences'), true);
-        $this->assertEquals($preferences, $storedPreferences);
-
-        $expectedRetrievedPreferences = [
-            'TestNotificationWithDefaults' => [
-                'mail' => true,
-                'database' => true,
-                'slack' => null,
-            ],
-            'TestNotificationWithoutDefaults' => [
-                'mail' => null,
-                'database' => null,
-                'slack' => true,
-            ],
-            'TestNotificationWithRestrictedAvailableChannels' => [
-                'mail' => null,
-                'database' => null,
-                'slack' => null,
-            ],
-        ];
-
-        $this->assertEquals($expectedRetrievedPreferences, $retrievedPreferences);
-    }
-
-    /** @test */
-    public function test_notification_is_routed_based_on_user_preferences()
-    {
-        Notification::fake();
-
-        /** @var User $user */
-        $user = new \Workbench\Database\Factories\UserFactory()->create();
-
-        // User prefers to receive TestNotificationWithDefaults only via slack
-        $user->notification_preferences = [
-            'TestNotificationWithDefaults' => ['slack'],
-        ];
-        $user->save();
-
-        // Send the notification
-        $user->notify(new TestNotificationWithDefaults);
-
-        // Assert it was only sent to slack
-        Notification::assertSentTo(
-            $user,
-            TestNotificationWithDefaults::class,
-            function (TestNotificationWithDefaults $notification, array $channels) {
-                $this->assertCount(1, $channels);
-                $this->assertEquals('slack', $channels[0]);
-
-                return true;
-            }
-        );
-    }
-
-    /** @test */
-    public function test_notification_with_own_defaults_is_routed_to_its_defaults_when_user_has_no_preference()
-    {
-        Notification::fake();
-
-        /** @var User $user */
-        $user = new \Workbench\Database\Factories\UserFactory()->create();
-
-        // Send the notification that has its own default channels
-        $user->notify(new TestNotificationWithDefaults);
-
-        // Assert it was sent to its defined default channels ('mail', 'database')
-        Notification::assertSentTo(
-            $user,
-            TestNotificationWithDefaults::class,
-            function ($notification, $channels) {
-                $this->assertCount(2, $channels);
-                $this->assertContains('mail', $channels);
-                $this->assertContains('database', $channels);
-                $this->assertNotContains('slack', $channels);
-
-                return true;
-            });
-    }
-
-    /** @test */
-    public function test_notification_without_own_defaults_is_routed_to_global_defaults_when_user_has_no_preference()
-    {
-        Notification::fake();
-
-        /** @var User $user */
-        $user = new \Workbench\Database\Factories\UserFactory()->create();
-
-        // Send the notification that does not have its own default channels
-        $user->notify(new TestNotificationWithoutDefaults);
-
-        $manager = app(\KejKej\NotificationPreferences\Contracts\NotificationConfigurator::class);
-        $defaultChannels = $manager->defaultChannels();
-
-        Notification::assertSentTo(
-            $user,
-            TestNotificationWithoutDefaults::class,
-            function ($notification, $channels) use ($defaultChannels) {
-                $this->assertCount(count($defaultChannels), $channels);
-                $this->assertEquals($defaultChannels, $channels);
-
-                return true;
-            });
+        $this->assertSame($preferences, $storedPreferences);
     }
 
     #[Test]
-    public function notification_respects_its_own_available_channels_even_if_user_prefers_unavailable_one()
+    public function preference_options_expose_selected_and_effective_channels(): void
+    {
+        $user = $this->createUser();
+        $user->notification_preferences = ['with-defaults' => ['mail']];
+
+        $this->assertSame([
+            'channels' => ['mail', 'database', 'slack'],
+            'default_channels' => ['mail', 'database'],
+            'selected_channels' => ['mail'],
+            'effective_channels' => ['mail'],
+        ], $user->getNotificationPreferences()['with-defaults']);
+
+        $this->assertSame([
+            'channels' => ['mail', 'database', 'slack'],
+            'default_channels' => ['slack'],
+            'selected_channels' => null,
+            'effective_channels' => ['slack'],
+        ], $user->getNotificationPreferences()['without-defaults']);
+    }
+
+    #[Test]
+    public function explicit_user_preferences_control_routing(): void
     {
         Notification::fake();
-
-        /** @var User $user */
-        $user = new \Workbench\Database\Factories\UserFactory()->create();
-
-        // User prefers 'database' and 'slack'. 'database' is NOT in TestNotificationWithRestrictedAvailableChannels's $availableChannels.
-        $user->notification_preferences = [
-            'TestNotificationWithRestrictedAvailableChannels' => ['database', 'slack'],
-        ];
+        $user = $this->createUser();
+        $user->notification_preferences = ['with-defaults' => ['slack']];
         $user->save();
 
-        $user->notify(new TestNotificationWithRestrictedAvailableChannels);
+        $user->notify(new TestNotificationWithDefaults);
 
-        // Should only be sent to 'slack' because 'database' is not available for this specific notification.
-        Notification::assertSentTo($user, TestNotificationWithRestrictedAvailableChannels::class, function ($notification, $channels) {
-            $this->assertCount(1, $channels);
-            $this->assertEquals('slack', $channels[0]);
-            $this->assertNotContains('database', $channels);
-            $this->assertNotContains('mail', $channels); // 'mail' is available and default, but user didn't select it.
+        Notification::assertSentTo($user, TestNotificationWithDefaults::class, function ($notification, array $channels) {
+            $this->assertSame(['slack'], $channels);
 
             return true;
         });
     }
 
     #[Test]
-    public function notification_uses_its_own_default_channel_if_user_preference_is_not_available()
+    public function configured_defaults_are_used_when_user_has_no_preference(): void
     {
         Notification::fake();
+        $user = $this->createUser();
 
-        /** @var User $user */
-        $user = new \Workbench\Database\Factories\UserFactory()->create();
+        $user->notify(new TestNotificationWithDefaults);
 
-        // User prefers 'database', which is NOT in TestNotificationWithRestrictedAvailableChannels's $availableChannels.
-        $user->notification_preferences = [
-            'TestNotificationWithRestrictedAvailableChannels' => ['database'],
-        ];
+        Notification::assertSentTo($user, TestNotificationWithDefaults::class, function ($notification, array $channels) {
+            $this->assertSame(['mail', 'database'], $channels);
+
+            return true;
+        });
+    }
+
+    #[Test]
+    public function explicit_empty_preferences_disable_all_channels(): void
+    {
+        Notification::fake();
+        $user = $this->createUser();
+        $user->notification_preferences = ['with-defaults' => []];
+        $user->save();
+
+        $user->notify(new TestNotificationWithDefaults);
+
+        Notification::assertNotSentTo($user, TestNotificationWithDefaults::class);
+    }
+
+    #[Test]
+    public function selected_channels_are_filtered_by_the_definition(): void
+    {
+        Notification::fake();
+        $user = $this->createUser();
+        $user->notification_preferences = ['restricted' => ['slack']];
         $user->save();
 
         $user->notify(new TestNotificationWithRestrictedAvailableChannels);
 
-        // User has explicit preference, but none of selected channels are available for this notification.
+        Notification::assertSentTo($user, TestNotificationWithRestrictedAvailableChannels::class, function ($notification, array $channels) {
+            $this->assertSame(['slack'], $channels);
+
+            return true;
+        });
+    }
+
+    #[Test]
+    public function an_explicit_preference_with_no_available_channels_sends_nothing(): void
+    {
+        Notification::fake();
+        $user = $this->createUser();
+        $user->notification_preferences = ['restricted' => []];
+        $user->save();
+
+        $user->notify(new TestNotificationWithRestrictedAvailableChannels);
+
         Notification::assertNotSentTo($user, TestNotificationWithRestrictedAvailableChannels::class);
     }
 
     #[Test]
-    public function adding_new_notification_type_after_user_has_saved_preferences_builds_complete_matrix()
+    public function adding_a_notification_definition_does_not_require_data_migration(): void
     {
-        /** @var User $user */
-        $user = new \Workbench\Database\Factories\UserFactory()->create();
-
-        $user->notification_preferences = [
-            'TestNotificationWithDefaults' => ['mail'],
-        ];
+        $user = $this->createUser();
+        $user->notification_preferences = ['with-defaults' => ['mail']];
         $user->save();
 
-        config()->set('notification-preferences.notifications', [
-            ...config('notification-preferences.notifications'),
-            'NewlyAddedNotificationType' => TestNotificationWithDefaults::class,
+        config()->set('notification-preferences.notifications.new-type', [
+            'class' => TestNotificationNewType::class,
+            'channels' => ['mail'],
+            'default_channels' => ['mail'],
         ]);
 
         $user->refresh();
-        $preferences = $user->getNotificationPreferences()->toPreferenceMap();
-
-        $this->assertArrayHasKey('NewlyAddedNotificationType', $preferences);
-        $this->assertEquals([
-            'mail' => null,
-            'database' => null,
-            'slack' => null,
-        ], $preferences['NewlyAddedNotificationType']);
-
-        $this->assertTrue($preferences['TestNotificationWithDefaults']['mail']);
-        $this->assertFalse($preferences['TestNotificationWithDefaults']['database']);
-        $this->assertFalse($preferences['TestNotificationWithDefaults']['slack']);
+        $this->assertSame(['mail'], $user->getNotificationPreferences()['with-defaults']['selected_channels']);
+        $this->assertArrayHasKey('new-type', $user->getNotificationPreferences());
     }
 
     #[Test]
-    public function unknown_notification_and_channels_are_dropped_on_write()
+    public function invalid_notification_keys_and_channels_are_rejected_on_write(): void
     {
-        /** @var User $user */
-        $user = new \Workbench\Database\Factories\UserFactory()->create();
+        $user = $this->createUser();
 
+        $this->expectException(\InvalidArgumentException::class);
         $user->notification_preferences = [
-            'TestNotificationWithDefaults' => ['mail', 'invalid-channel', 'mail'],
-            'UnknownNotification' => ['mail'],
+            'unknown' => ['mail'],
         ];
-        $user->save();
-
-        $storedPreferences = json_decode($user->getRawOriginal('notification_preferences'), true);
-
-        $this->assertEquals([
-            'TestNotificationWithDefaults' => ['mail'],
-        ], $storedPreferences);
     }
 
     #[Test]
-    public function legacy_unknown_data_is_ignored_on_read_but_preserved_until_rewrite()
+    public function malformed_channel_values_are_rejected_on_write(): void
     {
-        /** @var User $user */
-        $user = new \Workbench\Database\Factories\UserFactory()->create();
+        $user = $this->createUser();
 
+        $this->expectException(\InvalidArgumentException::class);
+        $user->notification_preferences = [
+            'with-defaults' => ['mail', 123],
+        ];
+    }
+
+    #[Test]
+    public function obsolete_stored_entries_are_ignored_without_rewriting_raw_data(): void
+    {
+        $user = $this->createUser();
         User::query()->whereKey($user->id)->update([
             'notification_preferences' => json_encode([
-                'UnknownNotification' => ['mail'],
-                'TestNotificationWithDefaults' => ['mail', 'unknown-channel'],
+                'obsolete' => ['mail'],
+                'with-defaults' => ['mail', 'removed-channel'],
             ]),
         ]);
 
         $user->refresh();
-        $preferences = $user->getNotificationPreferences()->toPreferenceMap();
 
-        $this->assertArrayNotHasKey('UnknownNotification', $preferences);
-        $this->assertTrue($preferences['TestNotificationWithDefaults']['mail']);
-        $this->assertFalse($preferences['TestNotificationWithDefaults']['database']);
-        $this->assertFalse($preferences['TestNotificationWithDefaults']['slack']);
-
+        $this->assertSame(['mail'], $user->notification_preferences['with-defaults']);
         $rawStored = json_decode($user->getRawOriginal('notification_preferences'), true);
-        $this->assertArrayHasKey('UnknownNotification', $rawStored);
-        $this->assertContains('unknown-channel', $rawStored['TestNotificationWithDefaults']);
+        $this->assertArrayHasKey('obsolete', $rawStored);
+        $this->assertContains('removed-channel', $rawStored['with-defaults']);
     }
 
     #[Test]
-    public function malformed_preference_payload_is_safely_sanitized()
+    public function malformed_persisted_json_is_rejected_on_read(): void
     {
-        /** @var User $user */
-        $user = new \Workbench\Database\Factories\UserFactory()->create();
+        $user = $this->createUser();
+        User::query()->whereKey($user->id)->update(['notification_preferences' => '{not-json']);
+        $user->refresh();
 
-        $user->notification_preferences = [
-            'TestNotificationWithDefaults' => [
-                'mail',
-                123,
-                ['nested'],
-                null,
-                true,
-                'mail',
-                '',
-                'database',
-            ],
-            'TestNotificationWithoutDefaults' => 'mail',
-            'TestNotificationWithRestrictedAvailableChannels' => [
-                'slack',
-                new \stdClass,
-            ],
-            10 => ['mail'],
-        ];
-        $user->save();
-
-        $stored = json_decode($user->getRawOriginal('notification_preferences'), true);
-
-        $this->assertEquals([
-            'TestNotificationWithDefaults' => ['mail', 'database'],
-            'TestNotificationWithRestrictedAvailableChannels' => ['slack'],
-        ], $stored);
-
-        $matrix = $user->getNotificationPreferences()->toPreferenceMap();
-
-        $this->assertTrue($matrix['TestNotificationWithDefaults']['mail']);
-        $this->assertTrue($matrix['TestNotificationWithDefaults']['database']);
-        $this->assertFalse($matrix['TestNotificationWithDefaults']['slack']);
-
-        $this->assertNull($matrix['TestNotificationWithoutDefaults']['mail']);
-        $this->assertNull($matrix['TestNotificationWithoutDefaults']['database']);
-        $this->assertNull($matrix['TestNotificationWithoutDefaults']['slack']);
-
-        $this->assertFalse($matrix['TestNotificationWithRestrictedAvailableChannels']['mail']);
-        $this->assertFalse($matrix['TestNotificationWithRestrictedAvailableChannels']['database']);
-        $this->assertTrue($matrix['TestNotificationWithRestrictedAvailableChannels']['slack']);
+        $this->expectException(\UnexpectedValueException::class);
+        $user->getNotificationPreferences();
     }
 }

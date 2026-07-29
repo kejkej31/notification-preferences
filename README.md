@@ -1,216 +1,99 @@
 # Laravel Notification Preferences
 
-Simple, config-driven notification preferences for Laravel users.
+Small, config-driven notification preferences for Laravel notifiables.
 
 ## Requirements
 
-- PHP 8.1+
-- Laravel support (declared): `illuminate/support ^9|^10|^11|^12`
-
-## Features
-
-- Save per-notification channel preferences (e.g. `mail`, `database`).
-- Automatically route notifications through selected channels.
-- Configure notification types and global channels in one place.
-- Optional per-notification channel restrictions/defaults.
-- Defensive normalization of persisted preferences.
+- PHP 8.2+
+- Laravel 11, 12, or 13
 
 ## Installation
 
-1. Install with Composer:
-   ```bash
-   composer require kejkej/notification-preferences
-   ```
-2. Publish config:
-   ```bash
-   php artisan vendor:publish --provider="KejKej\\NotificationPreferences\\NotificationPreferencesServiceProvider" --tag="notification-preferences-config"
-   ```
-3. Publish migration:
-   ```bash
-   php artisan vendor:publish --provider="KejKej\\NotificationPreferences\\NotificationPreferencesServiceProvider" --tag="notification-preferences-migrations"
-   ```
-4. Run migrations:
-   ```bash
-   php artisan migrate
-   ```
+```bash
+composer require kejkej/notification-preferences
+php artisan vendor:publish --provider="KejKej\\NotificationPreferences\\NotificationPreferencesServiceProvider" --tag="notification-preferences-config"
+php artisan vendor:publish --provider="KejKej\\NotificationPreferences\\NotificationPreferencesServiceProvider" --tag="notification-preferences-migrations"
+php artisan migrate
+```
+
+The migration is publish-only because applications may use a custom notifiable table. Edit the published migration when the JSON column does not belong on `users`.
 
 ## Configuration
 
-Edit `config/notification-preferences.php`:
+Each notification has a stable key independent of its PHP class name:
 
 ```php
 return [
     'notifications' => [
-        'PostCommented' => App\Notifications\PostCommented::class,
-        'NewFollower' => App\Notifications\NewFollower::class,
-    ],
-
-    'channels' => [
-        'mail',
-        'database',
-    ],
-
-    'default_channels' => [
-        'mail',
+        'post-commented' => [
+            'class' => App\Notifications\PostCommented::class,
+            'channels' => ['mail', 'database'],
+            'default_channels' => ['mail'],
+        ],
     ],
 ];
 ```
 
-## Data model
+The registry validates definitions and rejects duplicate classes, unknown defaults, and malformed channel lists.
 
-The package stores user preferences in a JSON column named `notification_preferences` on the users table.
+## User model
 
-Stored format is a channel list per notification key, for example:
-
-```json
-{"PostCommented":["mail"]}
-```
-
-Normalization behavior:
-
-- Unknown notification keys are dropped on write.
-- Unknown channels are dropped on write.
-- Invalid payload shapes are tolerated on read and normalized into an empty/partial matrix.
-
-## Usage
-
-### 1) Add trait to user model
+Add the trait to any model containing a nullable JSON `notification_preferences` column:
 
 ```php
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 use KejKej\NotificationPreferences\Traits\HasNotificationPreferences;
 
 class User extends Authenticatable
 {
-    use Notifiable, HasNotificationPreferences;
+    use HasNotificationPreferences;
 }
 ```
 
-### 2) Add routing trait to notifications
+The attribute is symmetric: it always reads and writes explicit overrides in this shape:
 
 ```php
-namespace App\Notifications;
+$user->notification_preferences = [
+    'post-commented' => ['mail'],
+];
+$user->save();
+```
 
-use Illuminate\Bus\Queueable;
+An omitted key uses its configured defaults. An explicit empty list disables every channel for that notification.
+
+For settings forms, `getNotificationPreferences()` returns every configured notification with its available channels, defaults, nullable selected channels, and effective channels:
+
+```php
+$options = $user->getNotificationPreferences();
+```
+
+`getNotificationPreference('post-commented')` returns the explicit channel list or `null` when no override exists.
+
+Invalid keys, channels, and payload shapes are rejected when writing. Obsolete keys and channels already persisted in the database are ignored when reading until the record is rewritten.
+
+## Notification routing
+
+Use the routing trait on notifications registered in the config:
+
+```php
 use Illuminate\Notifications\Notification;
 use KejKej\NotificationPreferences\Traits\RoutesNotificationsViaPreferences;
 
 class PostCommented extends Notification
 {
-    use Queueable, RoutesNotificationsViaPreferences;
+    use RoutesNotificationsViaPreferences;
 }
 ```
 
-### 3) Optional per-notification channels/defaults
+The trait returns the user’s explicit channels, or the configured defaults when no override exists. The selected list is always filtered by the channels declared for that notification. Notifications that should bypass preferences should not use the trait.
 
-```php
-use KejKej\NotificationPreferences\Traits\HasChannelSettings;
-
-class PostCommented extends Notification
-{
-    use Queueable, RoutesNotificationsViaPreferences, HasChannelSettings;
-
-    protected array $availableChannels = ['mail', 'database'];
-    protected array $defaultChannels = ['mail'];
-}
-```
-
-### 4) Save preferences
-
-```php
-$user->notification_preferences = [
-    'PostCommented' => ['mail', 'database'],
-    'NewFollower' => ['mail'],
-];
-
-$user->save();
-```
-
-### 5) Read preferences matrix
-
-```php
-$matrix = $user->getNotificationPreferences();
-$map = $matrix->toPreferenceMap();
-```
-
-Matrix values:
-
-- `true`: user enabled this channel.
-- `false`: user has preferences for this notification, but did not select this channel.
-- `null`: user has no preferences for this notification.
-
-### 6) Send notifications normally
-
-```php
-$user->notify(new PostCommented($post));
-```
-
-## Channel resolution rules
-
-- No user preference for a notification:
-  - use notification-level defaults (when `HasChannelSettings` is used), otherwise global `default_channels`.
-- User preference exists:
-  - use selected channels filtered by notification availability.
-  - if all selected channels are invalid/unavailable, notification is not sent.
-
-## Local development
-
-Install dependencies:
+## Development
 
 ```bash
 composer install
-```
-
-Run tests:
-
-```bash
 composer test
-```
-
-Run style checks:
-
-```bash
 composer lint
-```
-
-Run static analysis:
-
-```bash
 composer analyse
-```
-
-Clear local quality caches:
-
-```bash
-composer clean-cache
-```
-
-Run all quality checks:
-
-```bash
 composer quality
 ```
 
-Create and push the next release tag from `HEAD`:
-
-```bash
-composer patch # 2.0.1 -> 2.0.2
-composer minor # 2.0.1 -> 2.1.0
-composer major # 2.0.1 -> 3.0.0
-```
-
-These commands fetch tags, calculate the next semantic version from the latest tag,
-create the new tag on the latest commit, and push that tag to the tracked remote.
-
-Enable repository git hooks (required once per clone):
-
-```bash
-git config core.hooksPath .githooks
-chmod +x .githooks/pre-commit
-```
-
-## CI quality gate rollout
-
-- Phase 1 (current): tests are required, while lint/static analysis run in soft-gate mode in CI.
-- Phase 2: switch lint/static analysis steps to required once formatting debt is cleaned up.
+The CI matrix runs the package against Laravel 11/Testbench 9, Laravel 12/Testbench 10, and Laravel 13/Testbench 11.

@@ -3,6 +3,7 @@
 namespace KejKej\NotificationPreferences;
 
 use Illuminate\Support\ServiceProvider;
+use KejKej\NotificationPreferences\Services\NotificationRegistry;
 
 class NotificationPreferencesServiceProvider extends ServiceProvider
 {
@@ -13,8 +14,6 @@ class NotificationPreferencesServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-
         $this->publishes([
             __DIR__.'/../config/notification-preferences.php' => config_path('notification-preferences.php'),
         ], 'notification-preferences-config');
@@ -26,9 +25,8 @@ class NotificationPreferencesServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->app->singleton(
-            \KejKej\NotificationPreferences\Contracts\NotificationConfigurator::class,
-            \KejKej\NotificationPreferences\Services\NotificationConfigurator::class
-        );
+        $this->mergeConfigFrom(__DIR__.'/../config/notification-preferences.php', 'notification-preferences');
+
+        $this->app->singleton(NotificationRegistry::class);
     }
 }

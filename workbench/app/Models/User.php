@@ -7,10 +7,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use KejKej\NotificationPreferences\Traits\HasNotificationPreferences;
+use Workbench\Database\Factories\UserFactory;
 
+/**
+ * @property mixed $notification_preferences
+ */
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Workbench\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, HasNotificationPreferences, Notifiable;
 
     /**

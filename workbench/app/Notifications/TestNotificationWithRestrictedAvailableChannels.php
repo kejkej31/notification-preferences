@@ -3,19 +3,13 @@
 namespace Workbench\App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use KejKej\NotificationPreferences\Traits\HasChannelSettings;
 use KejKej\NotificationPreferences\Traits\RoutesNotificationsViaPreferences;
 
 class TestNotificationWithRestrictedAvailableChannels extends Notification
 {
-    use HasChannelSettings, Queueable, RoutesNotificationsViaPreferences;
-
-    // Only 'mail' and 'slack' are available for this notification
-    protected array $availableChannels = ['mail', 'slack'];
-
-    // Default is 'mail' if no user preference
-    protected array $defaultChannels = ['mail'];
+    use Queueable, RoutesNotificationsViaPreferences;
 
     public function __construct()
     {
@@ -24,7 +18,7 @@ class TestNotificationWithRestrictedAvailableChannels extends Notification
 
     public function toMail($notifiable)
     {
-        return (new \Illuminate\Notifications\Messages\MailMessage)
+        return (new MailMessage)
             ->line('This is a test notification with restricted available channels (mail).');
     }
 

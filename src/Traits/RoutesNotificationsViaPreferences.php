@@ -2,7 +2,7 @@
 
 namespace KejKej\NotificationPreferences\Traits;
 
-use KejKej\NotificationPreferences\Contracts\NotificationConfigurator;
+use KejKej\NotificationPreferences\Services\NotificationRegistry;
 
 trait RoutesNotificationsViaPreferences
 {
@@ -13,25 +13,29 @@ trait RoutesNotificationsViaPreferences
      */
     public function via(mixed $notifiable): array
     {
-        $manager = app(NotificationConfigurator::class);
+        $registry = app(NotificationRegistry::class);
+        $notificationName = $registry->keyForClass(static::class);
 
-        if (! is_object($notifiable) || ! method_exists($notifiable, 'getEnabledChannelsForNotification')) {
-            return $manager->defaultChannelsForNotification($this);
-        }
-
-        $notificationName = $manager->findNotificationByClass($this::class);
         if ($notificationName === null) {
-            return $manager->defaultChannelsForNotification($this);
+            throw new \LogicException(
+                sprintf('Notification [%s] uses RoutesNotificationsViaPreferences but is not registered.', static::class),
+            );
         }
 
-        $selectedChannels = $notifiable->getEnabledChannelsForNotification($notificationName);
-        if ($selectedChannels === null) {
-            return $manager->defaultChannelsForNotification($this);
+        $definition = $registry->definition($notificationName);
+        if ($definition === null) {
+            throw new \LogicException("Notification preference definition [{$notificationName}] could not be loaded.");
         }
+
+        if (! is_object($notifiable) || ! method_exists($notifiable, 'getNotificationPreference')) {
+            return $definition->defaultChannels;
+        }
+
+        $selectedChannels = $notifiable->getNotificationPreference($notificationName);
 
         return array_values(array_intersect(
-            $manager->availableChannelsForNotification($this),
-            $selectedChannels
+            $definition->channels,
+            $selectedChannels ?? $definition->defaultChannels,
         ));
     }
 }

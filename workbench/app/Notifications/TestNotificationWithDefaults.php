@@ -3,17 +3,13 @@
 namespace Workbench\App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use KejKej\NotificationPreferences\Traits\HasChannelSettings;
 use KejKej\NotificationPreferences\Traits\RoutesNotificationsViaPreferences;
 
 class TestNotificationWithDefaults extends Notification
 {
-    use HasChannelSettings, Queueable, RoutesNotificationsViaPreferences;
-
-    protected array $availableChannels = ['mail', 'database', 'slack'];
-
-    protected array $defaultChannels = ['mail', 'database'];
+    use Queueable, RoutesNotificationsViaPreferences;
 
     public function __construct()
     {
@@ -22,7 +18,7 @@ class TestNotificationWithDefaults extends Notification
 
     public function toMail($notifiable)
     {
-        return (new \Illuminate\Notifications\Messages\MailMessage)
+        return (new MailMessage)
             ->line('This is a test notification with defaults (mail).');
     }
 

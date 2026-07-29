@@ -2,55 +2,35 @@
 
 namespace KejKej\NotificationPreferences\Traits;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use KejKej\NotificationPreferences\Contracts\NotificationConfigurator;
-use KejKej\NotificationPreferences\DTO\NotificationPreferencesMatrix;
+use KejKej\NotificationPreferences\Casts\NotificationPreferencesCast;
+use KejKej\NotificationPreferences\Services\NotificationRegistry;
 
 trait HasNotificationPreferences
 {
-    public function getNotificationPreferences(): NotificationPreferencesMatrix
+    public function initializeHasNotificationPreferences(): void
     {
-        return app(NotificationConfigurator::class)
-            ->preferenceMatrix($this->getRawStoredNotificationPreferences());
+        $this->mergeCasts([
+            'notification_preferences' => NotificationPreferencesCast::class,
+        ]);
     }
 
     /**
-     * @return array<string, array<string, bool|null>>
+     * @return array<string, array{channels: list<string>, default_channels: list<string>, selected_channels: list<string>|null, effective_channels: list<string>}>
      */
-    public function getNotificationPreferencesMap(): array
+    public function getNotificationPreferences(): array
     {
-        return $this->getNotificationPreferences()->toPreferenceMap();
-    }
-
-    public function getEnabledChannelsForNotification(string $notificationName): ?array
-    {
-        return app(NotificationConfigurator::class)
-            ->selectedChannelsForNotification($this->getRawStoredNotificationPreferences(), $notificationName);
+        return app(NotificationRegistry::class)->preferenceOptions($this->getAttribute('notification_preferences') ?? []);
     }
 
     /**
-     * Get the notification preferences for the notifiable entity.
+     * @return list<string>|null
      */
-    public function notificationPreferences(): Attribute
+    public function getNotificationPreference(string $notificationName): ?array
     {
-        $notificationConfigurator = app(NotificationConfigurator::class);
+        $preferences = $this->getAttribute('notification_preferences') ?? [];
 
-        return Attribute::make(
-            get: function (?string $value) use ($notificationConfigurator) {
-                return $notificationConfigurator->preferenceMatrix($value)->toPreferenceMap();
-            },
-            set: function (mixed $value) use ($notificationConfigurator) {
-                return json_encode($notificationConfigurator->normalizeStoredPreferences($value));
-            },
-        )->withoutObjectCaching();
-    }
-
-    protected function getRawStoredNotificationPreferences(): mixed
-    {
-        if (method_exists($this, 'getRawOriginal')) {
-            return $this->getRawOriginal('notification_preferences');
-        }
-
-        return $this->attributes['notification_preferences'] ?? null;
+        return array_key_exists($notificationName, $preferences)
+            ? $preferences[$notificationName]
+            : null;
     }
 }
