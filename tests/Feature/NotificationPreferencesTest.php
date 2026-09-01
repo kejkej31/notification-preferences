@@ -24,7 +24,7 @@ class NotificationPreferencesTest extends TestCase
     private function createUser(): User
     {
         /** @var User $user */
-        $user = (new UserFactory())->create();
+        $user = (new UserFactory)->create();
 
         return $user;
     }
